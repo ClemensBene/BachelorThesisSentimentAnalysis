@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
+docopt-0.6.2/
+docopt-0.6.2.tar.gz
+.cff_to_bibtex.py.swp
+
 
 # C extensions
 *.so
