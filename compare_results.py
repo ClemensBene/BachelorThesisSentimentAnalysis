@@ -12,7 +12,7 @@ def plot_confusion_matrix(y_true, y_pred, title, output_dir):
         print(f"No data available to plot {title} Confusion Matrix")
         return
     cm = confusion_matrix(y_true, y_pred)
-    fig, ax = plt.subplots(figsize=(8, 6), dpi=200)
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=400)
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
     ax.set_xlabel('Predicted')
     ax.set_ylabel('True')
@@ -25,7 +25,7 @@ def plot_roc_curve(y_true, y_pred_proba, title, output_dir):
         return
     fpr, tpr, _ = roc_curve(y_true, y_pred_proba)
     roc_auc = auc(fpr, tpr)
-    fig, ax = plt.subplots(figsize=(8, 6), dpi=200)
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=400)
     ax.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
     ax.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
     ax.set_xlim([0.0, 1.0])
@@ -43,9 +43,10 @@ def plot_gpu_usage(log, title, output_dir, color='blue'):
     if 'step' not in log or 'gpu_usage' not in log:
         print(f"No data available to plot {title} GPU Usage")
         return
-    fig, ax = plt.subplots(figsize=(12, 8), dpi=200)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=400)
     smoothed_gpu_usage = smooth_data(log['gpu_usage'])
     ax.plot(log['step'], smoothed_gpu_usage, label=f'{title} GPU Usage', color=color)
+    ax.set_ylim([0, 100])  # Set y-axis limit from 0 to 100
     ax.set_title(f'{title} GPU Usage')
     ax.set_xlabel('Steps')
     ax.set_ylabel('GPU Usage (%)')
@@ -56,9 +57,10 @@ def plot_gpu_memory_usage(log, title, output_dir, color='blue'):
     if 'step' not in log or 'gpu_memory_usage' not in log:
         print(f"No data available to plot {title} GPU Memory Usage")
         return
-    fig, ax = plt.subplots(figsize=(12, 8), dpi=200)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=400)
     smoothed_memory_usage = smooth_data(log['gpu_memory_usage'])
     ax.plot(log['step'], smoothed_memory_usage, label=f'{title} GPU Memory Usage', color=color)
+    ax.set_ylim([0, 16000])  # Adjust this limit as necessary based on your data
     ax.set_title(f'{title} GPU Memory Usage')
     ax.set_xlabel('Steps')
     ax.set_ylabel('GPU Memory Usage (MB)')
@@ -69,9 +71,10 @@ def plot_ram_usage(log, title, output_dir, color='blue'):
     if 'step' not in log or 'ram_usage' not in log:
         print(f"No data available to plot {title} RAM Usage")
         return
-    fig, ax = plt.subplots(figsize=(12, 8), dpi=200)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=400)
     smoothed_ram_usage = smooth_data(log['ram_usage'])
     ax.plot(log['step'], smoothed_ram_usage, label=f'{title} RAM Usage', color=color)
+    ax.set_ylim([0, 32000])  # Adjust this limit as necessary based on your data
     ax.set_title(f'{title} RAM Usage')
     ax.set_xlabel('Steps')
     ax.set_ylabel('RAM Usage (MB)')
@@ -84,7 +87,7 @@ def plot_metric_comparison(metric_name, bert_value, elmo_value, output_dir):
         'BERT': [bert_value],
         'ELMo': [elmo_value]
     })
-    fig, ax = plt.subplots(figsize=(10, 6), dpi=200)
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=400)
     bars = metrics_df.plot(x='Metric', kind='bar', ax=ax)
     ax.set_title(f'{metric_name} Comparison')
     ax.set_ylabel(metric_name)
@@ -173,6 +176,20 @@ def find_csv_file(log_file):
         raise FileNotFoundError(f"CSV file not found for log file: {log_file}")
     return csv_file
 
+def plot_combined_metric(bert_log, elmo_log, title, ylabel, filename, output_dir, metric_key):
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=400)
+    smoothed_bert_metric = smooth_data(bert_log[metric_key])
+    smoothed_elmo_metric = smooth_data(elmo_log[metric_key])
+    ax.plot(bert_log['step'], smoothed_bert_metric, label='BERT', color='blue')
+    ax.plot(elmo_log['step'], smoothed_elmo_metric, label='ELMo', color='orange')
+    if ylabel == 'GPU Usage (%)':
+        ax.set_ylim([0, 100])  # Set y-axis limit from 0 to 100 for percentage plots
+    ax.set_title(f'{title} Comparison')
+    ax.set_xlabel('Steps')
+    ax.set_ylabel(ylabel)
+    ax.legend()
+    save_plot(fig, f'{filename}.png', output_dir)
+
 def main():
     base_output_dir = "/mnt/c/Users/cleme/OneDrive/Desktop/Datenanalyse"
     output_dir = create_output_dir(base_output_dir)
@@ -226,18 +243,6 @@ def main():
     plot_combined_metric(bert_log, elmo_log, 'RAM Usage', 'RAM Usage (MB)', 'ram_usage_comparison', output_dir, 'ram_usage')
     plot_combined_metric(bert_log, elmo_log, 'GPU Memory Usage', 'GPU Memory Usage (MB)', 'gpu_memory_usage_comparison', output_dir, 'gpu_memory_usage')
     plot_combined_metric(bert_log, elmo_log, 'GPU Usage', 'GPU Usage (%)', 'gpu_usage_comparison', output_dir, 'gpu_usage')
-
-def plot_combined_metric(bert_log, elmo_log, title, ylabel, filename, output_dir, metric_key):
-    fig, ax = plt.subplots(figsize=(12, 8), dpi=200)
-    smoothed_bert_metric = smooth_data(bert_log[metric_key])
-    smoothed_elmo_metric = smooth_data(elmo_log[metric_key])
-    ax.plot(bert_log['step'], smoothed_bert_metric, label='BERT', color='blue')
-    ax.plot(elmo_log['step'], smoothed_elmo_metric, label='ELMo', color='orange')
-    ax.set_title(f'{title} Comparison')
-    ax.set_xlabel('Steps')
-    ax.set_ylabel(ylabel)
-    ax.legend()
-    save_plot(fig, f'{filename}.png', output_dir)
 
 if __name__ == "__main__":
     main()

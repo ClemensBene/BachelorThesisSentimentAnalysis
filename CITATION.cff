@@ -6,6 +6,6 @@ authors:
     given-names: "Clemens"
 date-released: "2024-07-24"
 version: "1.0.0"
-url: "https://github.com/ClemensBene/SentimentAnalysis"
-repository-code: "https://github.com/ClemensBene/SentimentAnalysis"
+url: "https://github.com/ClemensBene/BachelorThesisSentimentAnalysis"
+repository-code: "https://github.com/ClemensBene/BachelorThesisSentimentAnalysis"
 license: "MIT"
