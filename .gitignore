@@ -65,3 +65,5 @@ coverage.xml
 # Ignore other unnecessary files and directories
 *.log
 *.tmp
+
+/work
